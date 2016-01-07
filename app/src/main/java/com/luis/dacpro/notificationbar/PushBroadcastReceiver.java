@@ -1,6 +1,7 @@
 package com.luis.dacpro.notificationbar;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -20,12 +21,13 @@ public class PushBroadcastReceiver extends ParsePushBroadcastReceiver{
 
     private final String TAG = PushBroadcastReceiver.class.getSimpleName();
 
-    public PushBroadcastReceiver(){
+    public PushBroadcastReceiver() {
         super();
     }
-    protected Notification getNotificacion(Context context, Intent intent){
 
-        //Crecion del JSON
+    @Override
+    protected Notification getNotification(Context context, Intent intent) {
+
         JSONObject pushData = null;
         try{
             pushData = new JSONObject(intent.getExtras().getString("com.parse.Data"));
@@ -38,16 +40,32 @@ public class PushBroadcastReceiver extends ParsePushBroadcastReceiver{
             String titulo = pushData.optString("titulo");
             String mensaje = pushData.optString("mensaje");
 
-            //Se crean las caracteristicas de la notificacion
+            Intent resultIntent;
+            if(pushData.has("url")){
+                String url = pushData.optString("url");
+                resultIntent = new Intent(Intent.ACTION_VIEW);
+                resultIntent.setData(Uri.parse(url));
+            }else{
+                resultIntent = new Intent(context,MainActivity.class);
+                resultIntent.putExtras(intent.getExtras());
+            }
+            PendingIntent resultPendingIntent =
+                    PendingIntent.getActivity(
+                            context,
+                            0,
+                            resultIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                    );
 
-            Notification notification = new NotificationCompat.Builder(
+            Notification notification = new android.support.v7.app.NotificationCompat.Builder(
                     context)
                     .setAutoCancel(true)
                     .setSmallIcon(android.R.drawable.ic_dialog_alert)
                     .setContentTitle(titulo)
                     .setContentText(mensaje)
+                    .setContentIntent(resultPendingIntent)
                     .build();
-            //Hace que cuando llegue la notificacion vibre el celular y suene
+
             notification.defaults |= Notification.DEFAULT_VIBRATE;
             notification.defaults |= Notification.DEFAULT_SOUND;
 
@@ -55,5 +73,6 @@ public class PushBroadcastReceiver extends ParsePushBroadcastReceiver{
         }else{
             return null;
         }
+
     }
 }

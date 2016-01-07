@@ -15,13 +15,21 @@ import com.parse.PushService;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends ActionBarActivity{
+public class MainActivity extends ActionBarActivity {
 
     private final String TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(getIntent().getExtras()!=null && getIntent().hasExtra("com.parse.Data")){
+            JSONObject pushData = null;
+            try{
+                pushData = new JSONObject(getIntent().getExtras().getString("com.parse.Data"));
+                String url = pushData.optString("url");
+                Log.i(TAG,url);
+            } catch (JSONException e) {}
+        }
         setContentView(R.layout.activity_main);
         }
 }
